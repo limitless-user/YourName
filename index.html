@@ -417,12 +417,31 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       /* ==========================================================
-         0. INTERACTIVE ENTRY OVERLAY & VIDEO CONTROLLER
+         0. SESSION-AWARE ENTRY OVERLAY & VIDEO CONTROLLER
          ========================================================== */
       const enterOverlay = document.getElementById('enter-overlay');
       const bgVideo = document.getElementById('bg-video');
 
+      // Check if user has already clicked ENTER in this browser session
+      const hasEntered = sessionStorage.getItem('hasEnteredSite');
+
+      if (hasEntered === 'true') {
+        // Skip overlay completely if already entered
+        if (enterOverlay) {
+          enterOverlay.style.display = 'none';
+        }
+        // Play video immediately
+        if (bgVideo) {
+          bgVideo.play().catch(err => {
+            console.warn("Video playback was interrupted:", err);
+          });
+        }
+      }
+
       function startExperience() {
+        // Save state so page changes don't re-trigger overlay
+        sessionStorage.setItem('hasEnteredSite', 'true');
+
         if (bgVideo) {
           bgVideo.play().catch(err => {
             console.warn("Video playback was interrupted:", err);
@@ -433,7 +452,7 @@
         }
       }
 
-      if (enterOverlay) {
+      if (enterOverlay && hasEntered !== 'true') {
         enterOverlay.addEventListener('click', startExperience);
       }
 
