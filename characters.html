@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登場人物 | Characters - Your Name.</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Shippori+Mincho:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --twilight-purple: #1a162b;
+      --comet-mist: #a2d2ff;
+      --comet-blue: #72efdd;
+      --sunset-pink: #ff758c;
+      --font-main: 'Inter', sans-serif;
+      --font-jp: 'Noto Serif JP', serif;
+      --font-jp-hero: 'Shippori Mincho', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background-color: #0b0d19;
+      font-family: var(--font-main);
+      color: #ffffff;
+      user-select: text;
+    }
+
+    /* Ambient Background Layers */
+    .dynamic-bg-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    .bg-image-layer {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      filter: blur(20px) scale(1.1) brightness(0.4) contrast(1.2);
+      transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .bg-image-layer.active {
+      opacity: 1;
+    }
+
+    .shinkai-overlay {
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(162, 210, 255, 0.12) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(11, 13, 25, 0.3) 0%, rgba(26, 22, 43, 0.85) 100%);
+      pointer-events: none;
+    }
+
+    .shinkai-watermark {
+      position: fixed;
+      right: 4vw;
+      top: 12vh;
+      font-family: var(--font-jp-hero);
+      font-size: clamp(4rem, 15vw, 13rem);
+      font-weight: 800;
+      writing-mode: vertical-rl;
+      color: rgba(255, 255, 255, 0.03);
+      letter-spacing: 12px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #comet-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* UI Layout */
+    .ui-wrapper {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 80px);
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .jp-title {
+      font-family: var(--font-jp-hero);
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-weight: 800;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, #ffffff 30%, var(--comet-mist) 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .en-title {
+      font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+      letter-spacing: 5px;
+      color: var(--comet-blue);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: clamp(12px, 2.5vw, 32px);
+      background: rgba(255, 255, 255, 0.05);
+      padding: clamp(8px, 1.2vw, 10px) clamp(16px, 2vw, 28px);
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: clamp(0.75rem, 1.2vw, 0.88rem);
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      transition: all 0.3s ease;
+      padding: 2px 4px;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #ffffff;
+      text-shadow: 0 0 10px #72efdd;
+    }
+
+    /* Accordion Gallery */
+    .character-gallery-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      width: 100%;
+      max-width: 1200px;
+      margin: 20px auto 0;
+      padding-bottom: 20px;
+    }
+
+    .accordion-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: clamp(8px, 1.5vw, 16px);
+      height: clamp(380px, 55vh, 520px);
+      width: 100%;
+    }
+
+    .accordion-card {
+      position: relative;
+      flex: 1;
+      height: clamp(300px, 45vh, 420px);
+      border-radius: clamp(12px, 2vw, 20px);
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background-color: var(--twilight-purple);
+      filter: grayscale(70%) opacity(0.7);
+      transition: flex 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  height 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  filter 0.4s ease;
+    }
+
+    .accordion-card.active {
+      flex: 4;
+      height: clamp(350px, 52vh, 500px);
+      filter: grayscale(0%) opacity(1);
+      border-color: rgba(247, 209, 186, 0.8);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .char-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+
+    .card-title-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(0deg, rgba(11, 13, 25, 0.8) 0%, transparent 60%);
+      transition: opacity 0.3s ease;
+    }
+
+    .card-title-overlay span {
+      font-family: var(--font-jp);
+      font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+      font-weight: 600;
+      writing-mode: vertical-rl;
+      letter-spacing: 4px;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .accordion-card.active .card-title-overlay {
+      opacity: 0;
+    }
+
+    .card-active-details {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: clamp(15px, 3vw, 30px);
+      background: linear-gradient(180deg, transparent 0%, rgba(12, 16, 43, 0.95) 100%);
+      z-index: 5;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+      pointer-events: none;
+    }
+
+    .accordion-card.active .card-active-details {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card-role-tag {
+      display: inline-block;
+      font-size: clamp(0.55rem, 1vw, 0.65rem);
+      letter-spacing: 2px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(232, 141, 141, 0.25);
+      border: 1px solid #e88d8d;
+      color: #f7d1ba;
+      margin-bottom: 8px;
+    }
+
+    .card-jp-title {
+      font-family: var(--font-jp-hero);
+      font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .card-en-sub {
+      font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+      letter-spacing: 3px;
+      color: var(--comet-mist);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .navbar { flex-direction: column; }
+      .accordion-container { flex-direction: column; height: auto; }
+      .accordion-card { width: 100%; height: 80px; }
+      .accordion-card.active { width: 100%; height: 280px; }
+      .card-title-overlay span { writing-mode: horizontal-tb; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dynamic-bg-wrapper">
+    <div class="bg-image-layer active" id="bg-layer-1" style="background-image: url('TAKI TACHIBANA.jpg');"></div>
+    <div class="bg-image-layer" id="bg-layer-2"></div>
+    <div class="shinkai-overlay"></div>
+  </div>
+
+  <div class="shinkai-watermark">黄昏時</div>
+  <canvas id="comet-canvas"></canvas>
+
+  <div class="ui-wrapper">
+    <header class="navbar">
+      <div class="logo">
+        <span class="jp-title">君の名は。</span>
+        <span class="en-title">Your Name.</span>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="story.html">Story</a>
+        <a href="characters.html" class="active">Characters</a>
+      </nav>
+    </header>
+
+    <main class="character-gallery-section">
+      <div class="accordion-container" id="accordion-container">
+
+        <div class="accordion-card active" data-index="0" data-img="TAKI TACHIBANA.jpg" tabindex="0" role="button" aria-label="Taki Tachibana">
+          <img src="TAKI TACHIBANA.jpg" alt="Taki Tachibana" class="char-img">
+          <div class="card-title-overlay"><span>立花 瀧</span></div>
+          <div class="card-active-details">
+            <span class="card-role-tag">TOKYO HIGH SCHOOLER</span>
+            <h2 class="card-jp-title">立花 瀧</h2>
+            <h3 class="card-en-sub">TAKI TACHIBANA</h3>
+          </div>
+        </div>
+
+        <div class="accordion-card" data-index="1" data-img="MITSUHA MIYAMIZU.jpg" tabindex="0" role="button" aria-label="Mitsuha Miyamizu">
+          <img src="MITSUHA MIYAMIZU.jpg" alt="Mitsuha Miyamizu" class="char-img">
+          <div class="card-title-overlay"><span>宮水 三葉</span></div>
+          <div class="card-active-details">
+            <span class="card-role-tag">ITOMORI TOWN GIRL</span>
+            <h2 class="card-jp-title">宮水 三葉</h2>
+            <h3 class="card-en-sub">MITSUHA MIYAMIZU</h3>
+          </div>
+        </div>
+
+        <div class="accordion-card" data-index="2" data-img="MIKI OKUDERA.jpg" tabindex="0" role="button" aria-label="Miki Okudera">
+          <img src="MIKI OKUDERA.jpg" alt="Miki Okudera" class="char-img">
+          <div class="card-title-overlay"><span>奥寺 ミキ</span></div>
+          <div class="card-active-details">
+            <span class="card-role-tag">RESTAURANT COWORKER</span>
+            <h2 class="card-jp-title">奥寺 ミキ</h2>
+            <h3 class="card-en-sub">MIKI OKUDERA</h3>
+          </div>
+        </div>
+
+        <div class="accordion-card" data-index="3" data-img="KATSUHIKO TESHIGAWARA.jpg" tabindex="0" role="button" aria-label="Katsuhiko Teshigawara">
+          <img src="KATSUHIKO TESHIGAWARA.jpg" alt="Katsuhiko Teshigawara" class="char-img">
+          <div class="card-title-overlay"><span>勅使河原 克彦</span></div>
+          <div class="card-active-details">
+            <span class="card-role-tag">MITSUHA'S CLASSMATE</span>
+            <h2 class="card-jp-title">勅使河原 克彦</h2>
+            <h3 class="card-en-sub">KATSUHIKO TESHIGAWARA</h3>
+          </div>
+        </div>
+
+        <div class="accordion-card" data-index="4" data-img="SAYAKA NATORI.jpg" tabindex="0" role="button" aria-label="Sayaka Natori">
+          <img src="SAYAKA NATORI.jpg" alt="Sayaka Natori" class="char-img">
+          <div class="card-title-overlay"><span>名取 早耶香</span></div>
+          <div class="card-active-details">
+            <span class="card-role-tag">BROADCASTING CLUB</span>
+            <h2 class="card-jp-title">名取 早耶香</h2>
+            <h3 class="card-en-sub">SAYAKA NATORI</h3>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Audio Element with Autoplay -->
+  <audio id="bg-music" autoplay loop preload="auto">
+    <source src="ThemeSong.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.accordion-card');
+      const bgLayer1 = document.getElementById('bg-layer-1');
+      const bgLayer2 = document.getElementById('bg-layer-2');
+      const audio = document.getElementById('bg-music');
+
+      let currentIndex = 0;
+      let activeBgLayer = 1;
+
+      // Attempt immediate autoplay on entry
+      const playAudio = () => {
+        audio.play().then(() => {
+          removeListeners();
+        }).catch(err => {
+          // Silent fallback if browser blocks initial autoplay
+        });
+      };
+
+      const startOnInteraction = () => {
+        playAudio();
+      };
+
+      function removeListeners() {
+        window.removeEventListener('click', startOnInteraction);
+        window.removeEventListener('touchstart', startOnInteraction);
+        window.removeEventListener('keydown', startOnInteraction);
+      }
+
+      window.addEventListener('click', startOnInteraction);
+      window.addEventListener('touchstart', startOnInteraction);
+      window.addEventListener('keydown', startOnInteraction);
+
+      playAudio();
+
+      function updateCard(index) {
+        if (index === currentIndex && cards[index].classList.contains('active')) return;
+
+        cards.forEach(card => card.classList.remove('active'));
+        const activeCard = cards[index];
+        activeCard.classList.add('active');
+        currentIndex = index;
+
+        const imgSrc = activeCard.dataset.img;
+        const nextLayer = activeBgLayer === 1 ? bgLayer2 : bgLayer1;
+        const currentLayer = activeBgLayer === 1 ? bgLayer1 : bgLayer2;
+
+        nextLayer.style.backgroundImage = `url('${imgSrc}')`;
+        nextLayer.classList.add('active');
+        currentLayer.classList.remove('active');
+        activeBgLayer = activeBgLayer === 1 ? 2 : 1;
+      }
+
+      cards.forEach((card, idx) => {
+        card.addEventListener('click', () => updateCard(idx));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            updateCard(idx);
+          }
+        });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') updateCard((currentIndex + 1) % cards.length);
+        if (e.key === 'ArrowLeft') updateCard((currentIndex - 1 + cards.length) % cards.length);
+      });
+
+      // Particle Canvas
+      const canvas = document.getElementById('comet-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      const particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        radius: Math.random() * 2 + 0.5,
+        speedY: (Math.random() - 0.5) * 0.3,
+        speedX: Math.random() * 0.3 + 0.1,
+        alpha: Math.random(),
+        fadeSpeed: Math.random() * 0.015 + 0.005,
+        color: Math.random() > 0.5 ? '#a2d2ff' : '#f7d1ba'
+      }));
+
+      function renderParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.alpha += p.fadeSpeed;
+          if (p.alpha >= 1 || p.alpha <= 0.1) p.fadeSpeed = -p.fadeSpeed;
+          if (p.x > canvas.width) p.x = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.abs(p.alpha);
+          ctx.fill();
+        });
+        requestAnimationFrame(renderParticles);
+      }
+      renderParticles();
+    });
+  </script>
+</body>
+</html>
